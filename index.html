@@ -20,6 +20,7 @@ welcome.
 </section>
 
 ## Usage example
+
 This example shows how to request an Arduino device from the user and set it up
 for use.
 
@@ -34,67 +35,67 @@ const port = await navigator.serial.requestPort(requestOptions);
 
 // Open and begin reading.
 await port.open({ baudrate: 115200 });
-const reader = port.in.getReader();
+const reader = port.readable.getReader();
 while (true) {
-  const {done, data} = await reader.read();
+  const { value, done } = await reader.read();
   if (done) break;
-  console.log(data);
+  console.log(value);
 }
 </pre>
 
-## Dependencies
-The <dfn>`ReadableStream`</dfn> and <dfn>`WritableStream`</dfn> interfaces are
-defined in [[!STREAMS]].
-
-The <dfn>`Promise`</dfn> and <dfn>`DOMException`</dfn> interfaces are defined
-in [[!DOM]].
-
 <section data-dfn-for="Navigator" data-link-for="Navigator">
-<h2><dfn>Navigator</dfn> partial interface</h2>
+## <dfn>Navigator</dfn> partial interface
 <pre class="idl">
 [Exposed=Window, SecureContext]
 partial interface Navigator {
   [SameObject] readonly attribute Serial serial;
 };
 </pre>
-<section>
-<h2><dfn>serial</dfn> attribute</h2>
+
+## <dfn>serial</dfn> attribute
 
 When getting, the <a>serial</a> attribute always returns the same instance of
 the <a>Serial</a> object.
 </section>
-</section>
 
 <section data-dfn-for="WorkerNavigator" data-link-for="WorkerNavigator">
-<h2><dfn>WorkerNavigator</dfn> partial interface</h2>
+## <dfn>WorkerNavigator</dfn> partial interface
 <pre class="idl">
 [Exposed=DedicatedWorker, SecureContext]
 partial interface WorkerNavigator {
   [SameObject] readonly attribute Serial serial;
 };
 </pre>
-<section>
-<h2><dfn>serial</dfn> attribute</h2>
+
+## <dfn>serial</dfn> attribute
 
 When getting, the <a>serial</a> attribute always returns the same instance of
 the <a>Serial</a> object.
 </section>
-</section>
 
 <section data-dfn-for="Serial" data-link-for="Serial">
-<h2><dfn>Serial</dfn> interface</h2>
-<pre class="idl">
+## <dfn>Serial</dfn> interface
+<pre class="idl" data-cite="DOM HTML">
+dictionary SerialPortRequestOptions {
+};
+
 [Exposed=(DedicatedWorker,Window), SecureContext]
 interface Serial : EventTarget {
   attribute EventHandler onconnect;
   attribute EventHandler ondisconnect;
+
   Promise&lt;sequence&lt;SerialPort>> getPorts();
-  [Exposed=Window] Promise&lt;SerialPort> requestPort(SerialPortRequestOptions options);
+  [Exposed=Window] Promise&lt;SerialPort> requestPort(optional SerialPortRequestOptions options = {});
 };
 </pre>
 
-<section>
-<h2><dfn>requestPort()</dfn> method</h2>
+## <dfn>onconnect</dfn> attribute
+
+## <dfn>ondisconnect</dfn> attribute
+
+## <dfn>getPorts()</dfn> method
+
+## <dfn>requestPort()</dfn> method
 
 The <a>requestPort()</a> method requests access to a serial port of the user's
 choice (see <a>security considerations</a>).
@@ -102,7 +103,7 @@ choice (see <a>security considerations</a>).
 When the <a>requestPort()</a> method is invoked, the user agent MUST perform the
 following steps:
 
- 1. Let <var>promise</var> be a newly created <a>`Promise`</a>.
+ 1. Let <var>promise</var> be a newly created <a data-cite="webidl#promise">`Promise`</a>.
  1. Return <var>promise</var> and run the remaining steps asynchronously.
  1. Request access to a serial port (see <a>security considerations</a>):
    1. If the access request is rejected
@@ -113,36 +114,56 @@ following steps:
       was granted and <a data-cite="promises-guide#resolve-promise">resolve</a>
       <var>promise</var> with <var>port</var>.
 </section>
-</section>
 
 <section data-dfn-for="SerialPort" data-link-for="SerialPort">
 <h2><dfn>SerialPort</dfn> interface</h2>
 
-<pre class="idl">
+<pre class="idl" data-cite="STREAMS">
 [Exposed=(DedicatedWorker,Window), SecureContext]
 interface SerialPort {
-  Promise&lt;void> open(optional SerialOptions options);
-  readonly attribute ReadableStream in;
-  readonly attribute WritableStream out;
+  readonly attribute ReadableStream readable;
+  readonly attribute WritableStream writable;
+
   SerialPortInfo getInfo();
+
+  Promise&lt;void> open(SerialOptions options);
+  Promise&lt;void> setSignals(SerialOutputSignals signals);
+  Promise&lt;SerialInputSignals> getSignals();
+  void close();
 };
 </pre>
 
-<section>
-<h2><dfn>getInfo()</dfn> method</h2>
+## <dfn>readable</dfn> attribute
+
+## <dfn>writable</dfn> attribute
+
+## <dfn>getInfo()</dfn> method
 
 The <a>getInfo()</a> method provides a means to get metadata corresponding to a
 <a>SerialPort</a> object.
 
 When the <a>getInfo()</a> method is invoked, the user agent MUST perform the
 <a>steps for getting metadata of a serial port</a>.
-</section>
+
+## <dfn>open()</dfn> method
+
+## <dfn>setSignals()</dfn> method
+
+## <dfn>getSignals()</dfn> method
+
+## <dfn>close()</dfn> method
+
+When invoked on a {{SerialPort}} <var>port</var> the <a>close()</a> method
+returns the result of
+`Promise.all([port.readable.cancel(), port.writable.abort()])`.
+
 </section>
 
 <section data-dfn-for="SerialPortInfo" data-link-for="SerialPortInfo">
-<h2><dfn>SerialPortInfo</dfn> interface</h2>
+## <dfn>SerialPortInfo</dfn> interface
 <pre class="idl">
-interface SerialPortInfo{
+[Exposed=(DedicatedWorker,Window), SecureContext]
+interface SerialPortInfo {
   maplike&lt;DOMString, DOMString?>;
 };
 </pre>
@@ -232,18 +253,15 @@ port</var> are as follows. The steps always return an instance of
 </section>
 
 <section data-dfn-for="SerialOptions" data-link-for="SerialOptions">
-<h2><dfn>SerialOptions</dfn> dictionary</h2>
+## <dfn>SerialOptions</dfn> dictionary
 <pre class="idl">
   dictionary SerialOptions {
-    long baudrate = 9600;
+    required unsigned long baudrate;
     octet databits = 8;
     octet stopbits = 1;
     ParityType parity = "none";
-    long buffersize = 255;
+    unsigned long buffersize = 255;
     boolean rtscts = false;
-    boolean xon = false;
-    boolean xoff = false;
-    boolean xany = false;
   };
 </pre>
 <dl data-dfn-for="SerialOptions">
@@ -251,54 +269,50 @@ port</var> are as follows. The steps always return an instance of
     <dfn>baudrate</dfn> member
   </dt>
   <dd>
-    One of 115200, 57600, 38400, 19200, 9600, 4800, 2400, 1800, 1200,
-    600, 300, 200, 150, 134, 110, 75, or 50.
+    A positive, non-zero value indicating the baud rate at which serial
+    communication should be established.
   </dd>
   <dt>
     <dfn>databits</dfn> member
   </dt>
   <dd>
-    One of 8, 7, 6, or 5.
+    The number of data bits per frame. Either 7 or 8.
   </dd>
   <dt>
     <dfn>stopbits</dfn> member
   </dt>
   <dd>
-    One of 1 or 2.
+    The number of stop bits at the end of a frame. Either 1 or 2.
   </dd>
   <dt>
     <dfn>parity</dfn> member'
   </dt>
   <dd>
-    The parity type.
+    The parity mode.
   </dd>
   <dt>
     <dfn>buffersize</dfn> member
   </dt>
+  <dd>
+    A positive, non-zero value indicating the size of the read and write
+    buffers that should be created.
+  </dd>
   <dt>
     <dfn>rtscts</dfn> member
   </dt>
-  <dt>
-    <dfn>xon</dfn> member
-  </dt>
-  <dt>
-    <dfn>xoff</dfn> member
-  </dt>
-  <dt>
-    <dfn>xany</dfn> member
-  </dt>
+  <dd>
+    If set to <code>true</code> then hardware flow control will be enabled.
+  </dd>
 </dl>
 </section>
 
 <section data-dfn-for="ParityType" data-link-for="ParityType">
-<h2><dfn>ParityType</dfn> enum</h2>
+## <dfn>ParityType</dfn> enum
 <pre class="idl">
 enum ParityType {
   "none",
   "even",
-  "odd",
-  "mark",
-  "space"
+  "odd"
 };
 </pre>
 <dl data-dfn-for"ParityType">
@@ -310,13 +324,163 @@ enum ParityType {
 
   <dt><dfn>odd</dfn></dt>
   <dd>Data word plus parity bit has odd parity.</dd>
-
-  <dt><dfn>mark</dfn></dt>
-  <dd>Parity bit has a mark symbol (logical one).</dd>
-
-  <dt><dfn>space</dfn></dt>
-  <dd>Parity bit has a space symbol (logical zero).</dd>
 </dl>
+</section>
+
+<section data-dfn-for="SerialInputSignals" data-link-for="SerialInputSignals">
+## <dfn>SerialInputSignals</dfn> dictionary
+<pre class="idl">
+  dictionary SerialInputSignals {
+    required boolean dcd;
+    required boolean cts;
+    required boolean ri;
+    required boolean dsr;
+  };
+</pre>
+<dl data-dfn-for="SerialInputSignals">
+  <dt><dfn>dcd</dfn> member</dt>
+  <dd>Data Carrier Detect</dd>
+  <dt><dfn>cts</dfn> member</dt>
+  <dd>Clear To Send</dd>
+  <dt><dfn>ri</dfn> member</dt>
+  <dd>Ring Indicator</dd>
+  <dt><dfn>dsr</dfn> member</dt>
+  <dd>Data Set Ready</dd>
+</dl>
+</section>
+
+<section data-dfn-for="SerialOutputSignals" data-link-for="SerialOutputSignals">
+## <dfn>SerialOutputSignals</dfn> dictionary
+<pre class="idl">
+  dictionary SerialOutputSignals {
+    boolean dtr;
+    boolean rts;
+    boolean brk;
+  };
+</pre>
+<dl data-dfn-for="SerialOutputSignals">
+  <dt><dfn>dtr</dfn></dt>
+  <dd>Data Terminal Ready</dd>
+  <dt><dfn>rts</dfn></dt>
+  <dd>Request To Send</dd>
+  <dt><dfn>brk</dfn></dt>
+  <dd>Break</dd>
+</dl>
+</section>
+
+<section>
+## Serial port source abstract operations
+
+## <dfn>SerialPortSourcePullAlgorithm</dfn>(<var>port</var>, <var>controller</var>)
+
+1. Let <var>promise</var> be a newly created
+   <a data-cite="webidl#promise">`Promise`</a>.
+1. <a data-cite="html#in-parallel">In parallel</a>, run the following steps:
+   1. Let <var>desiredSize</var> be <var>controller</var>.
+      <a data-cite="streams#rs-default-controller-desired-size">`desiredSize`</a>.
+   1. Let <var>buffer</var> be a newly created
+      <a data-cite="webidl#idl-ArrayBuffer">`ArrayBuffer`</a> of
+      <var>desiredSize</var> bytes.
+   1. Invoke the operating system to read up to <var>desiredSize</var> bytes
+      from <var>port</var> into <var>buffer</var>.
+   1. If no errors were encountered run the following steps:
+      1. Let <var>bytesRead</var> be the number of bytes written to
+         <var>buffer</var>.
+      1. Let <var>chunk</var> be a newly created
+         <a data-cite="webidl#idl-Uint8Array">`Uint8Array`</a> over the slice of
+         <var>buffer</var> from `0` to <var>bytesRead</var>.
+      1. Invoke <var>controller</var>.
+         <a data-cite="streams#rs-default-controller-enqueue">`enqueue()`</a>
+         with <var>chunk</var>.
+   1. If a buffer overrun condition was encountered, invoke
+      <var>controller</var>.
+      <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+      <dfn>`BufferOverrunError`</dfn>.
+   1. If a break condition was encountered, invoke <var>controller</var>.
+      <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+      <dfn>`BreakError`</dfn>.
+   1. If a framing error was encountered, invoke <var>controller</var>.
+      <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+      <dfn>`FramingError`</dfn>.
+   1. If a parity error was encountered, invoke <var>controller</var>.
+      <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+      <dfn>`ParityError`</dfn>.
+   1. If an operating system error was encountered, invoke
+      <var>controller</var>.
+      <a data-cite="streams#rs-default-controller-error">`error()`</a> with an
+      <a data-cite="webidl#unknownerror">`UnknownError`</a>.
+   1. If <var>port</var> was disconnected, invoke <var>controller</var>.
+      <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+      <a data-cite="webidl#networkerror">`NetworkError`</a>.
+   1. Resolve <var>promise</var>.
+1. Return <var>promise</var>.
+
+## <dfn>SerialPortSourceCancelAlgorithm</dfn>(port)
+
+1. Let <var>promise</var> be a newly created
+   <a data-cite="webidl#promise">`Promise`</a>.
+1. <a data-cite="html#in-parallel">In parallel</a>, invoke the operating system
+   to discard the contents of all software and hardware receive buffers for
+   <var>port</var> and resolve <var>promise</var>.
+1. Return <var>promise</var>.
+
+<p class="note">
+[[STREAMS]] specifies that {{SerialPortSourceCancelAlgorithm}} will only be
+invoked after the <a data-cite="webidl#promise">`Promise`</a> returned by a
+previous invocation of {{SerialPortSourcePullAlgorithm}} (if any) has resolved.
+This blocks cancelation of the stream until the operating system has completed
+a read operation.
+</p>
+</section>
+
+<section>
+## Serial port sink abstract operations
+
+## <dfn>SerialPortSinkWriteAlgorithm</dfn>(<var>port</var>, <var>chunk</var>)
+
+1. Let <var>promise</var> be a newly created
+   <a data-cite="webidl#promise">`Promise`</a>.
+1. <a data-cite="html#in-parallel">In parallel</a>, run the following steps:
+   1. Invoke the operating system to write <var>chunk</var> to <var>port</var>.
+   1. If the chunk was successfully written resolve <var>promise</var>.
+   1. If an operating system error was encountered, reject <var>promise</var>
+      with an <a data-cite="webidl#unknownerror">`UnknownError`</a>.
+   1. If <var>port</var> was disconnected, reject <var>promise</var> with a
+      <a data-cite="webidl#networkerror">`NetworkError`</a>.
+1. Return <var>promise</var>.
+
+<p class="note">
+[[STREAMS]] specifies that {{SerialPortSinkWriteAlgorithm}} will only be invoked
+after the <a data-cite="webidl#promise">`Promise`</a> returned by a previous
+invocation of this algorithm has resolved. This prevents implementations from
+coalescing multiple chunks waiting in the
+<a data-cite="streams#ws-class">`WritableStream`'s</a> internal queue.
+</p>
+
+## <dfn>SerialPortSinkAbortAlgorithm</dfn>(<var>port</var>, <var>reason</var>)
+
+1. Let <var>promise</var> be a newly created
+   <a data-cite="webidl#promise">`Promise`</a>.
+1. <a data-cite="html#in-parallel">In parallel</a>, invoke the operating system
+   to discard the contents of all software and hardware transmit buffers for
+   <var>port</var> and resolve <var>promise</var>.
+1. Return <var>promise</var>.
+
+<p class="note">
+[[STREAMS]] specifies that {{SerialPortSinkAbortAlgorithm}} will only be invoked
+after the <a data-cite="webidl#promise">`Promise`</a> returned by a previous
+invokation of {{SerialPortSinkWriteAlgorithm}} (if any) has resolved. This
+prevents users of this specification from also discarding the contents of the
+<a data-cite="streams#ws-class">`WritableStream`'s</a> internal queue.
+</p>
+
+## <dfn>SerialPortSinkCloseAlgorithm</dfn>(<var>port</var>)
+
+1. Let <var>promise</var> be a newly created
+   <a data-cite="webidl#promise">`Promise`</a>.
+1. <a data-cite="html#in-parallel">In parallel</a>, invoke the operating system
+   to flush the contents of all software and hardware transmit buffers for
+   <var>port</var> and resolve <var>promise</var>.
 </section>
 
 ## Security considerations
@@ -338,7 +502,7 @@ It is also RECOMMENDED that user agents provide users with a means for the end-
 user to view which independently of any access request, and be given the
 ability to revoke individual or complete access to serial ports at any time
 either at the user agent level or per [origin](http://www.whatwg.org/specs/web-apps/current-work/#origin-0)
-[[!HTML]].
+[[HTML]].
 
 <section class="informative">
 ## Use cases and requirements
