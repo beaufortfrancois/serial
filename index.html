@@ -103,15 +103,16 @@ choice (see <a>security considerations</a>).
 When the <a>requestPort()</a> method is invoked, the user agent MUST perform the
 following steps:
 
- 1. Let <var>promise</var> be a newly created <a data-cite="webidl#promise">`Promise`</a>.
- 1. Return <var>promise</var> and run the remaining steps asynchronously.
- 1. Request access to a serial port (see <a>security considerations</a>):
+1. Let <var>promise</var> be
+   <a data-cite="webidl#a-new-promise">a new promise</a>.
+1. Return <var>promise</var> and run the remaining steps asynchronously.
+1. Request access to a serial port (see <a>security considerations</a>):
    1. If the access request is rejected
-      <a data-cite="promises-guide#reject-promise">reject</a> <var>promise</var>
+      <a data-cite="webidl#reject">reject</a> <var>promise</var>
       with <a data-cite="webidl#aborterror">`AbortError`</a> and terminate this
       algorithm.
    1. Otherwise, let <var>port</var> be the <a>`SerialPort`</a> for which access
-      was granted and <a data-cite="promises-guide#resolve-promise">resolve</a>
+      was granted and <a data-cite="webidl#resolve">resolve</a>
       <var>promise</var> with <var>port</var>.
 </section>
 
@@ -153,9 +154,19 @@ When the <a>getInfo()</a> method is invoked, the user agent MUST perform the
 
 ## <dfn>close()</dfn> method
 
-When invoked on a {{SerialPort}} <var>port</var> the <a>close()</a> method
-returns the result of
-`Promise.all([port.readable.cancel(), port.writable.abort()])`.
+
+
+When invoked on a {{SerialPort}} <var>port</var> the <a>close()</a> method,
+the user agent MUST perform the following steps,
+
+1. Let <var>cancelPromise</var> be the result of invoking
+   <var>port</var>.{{readable}}.<a data-cite="streams#rs-cancel">`cancel()`</a>.
+1. Let <var>abortPromise</var> be the result of invoking
+   <var>port</var>.{{writable}}.<a data-cite="streams#ws-abort">`abort()`</a>.
+1. Let <var>promise</var> be the result of
+   <a data-cite="webidl#waiting-for-all-promise">getting a promise to wait for
+   all</a> with «<var>cancelPromise</var>, <var>abortPromise</var>».
+1. Return <var>promise</var>.
 
 </section>
 
@@ -373,9 +384,9 @@ enum ParityType {
 
 ## <dfn>SerialPortSourcePullAlgorithm</dfn>(<var>port</var>, <var>controller</var>)
 
-1. Let <var>promise</var> be a newly created
-   <a data-cite="webidl#promise">`Promise`</a>.
-1. Resolve <var>promise</var>.
+1. Let <var>promise</var> be
+   <a data-cite="webidl#a-new-promise">a new promise</a>.
+1. <a data-cite="webidl#resolve">Resolve</a> <var>promise</var>.
 1. Return <var>promise</var> and run the following steps <a data-cite="html#in-parallel">in parallel</a>:
     1. Let <var>desiredSize</var> be <var>controller</var>.
        <a data-cite="streams#rs-default-controller-desired-size">`desiredSize`</a>.
@@ -427,7 +438,8 @@ enqueued.
    <a data-cite="webidl#promise">`Promise`</a>.
 1. <a data-cite="html#in-parallel">In parallel</a>, invoke the operating system
    to discard the contents of all software and hardware receive buffers for
-   <var>port</var> and resolve <var>promise</var>.
+   <var>port</var> and <a data-cite="webidl#resolve">resolve</a>
+   <var>promise</var>.
 1. Return <var>promise</var>.
 </section>
 
@@ -440,10 +452,13 @@ enqueued.
    <a data-cite="webidl#promise">`Promise`</a>.
 1. <a data-cite="html#in-parallel">In parallel</a>, run the following steps:
    1. Invoke the operating system to write <var>chunk</var> to <var>port</var>.
-   1. If the chunk was successfully written resolve <var>promise</var>.
-   1. If an operating system error was encountered, reject <var>promise</var>
+   1. If the chunk was successfully written
+      <a data-cite="webidl#resolve">resolve</a> <var>promise</var>.
+   1. If an operating system error was encountered,
+      <a data-cite="webidl#reject">reject</a> <var>promise</var>
       with an <a data-cite="webidl#unknownerror">`UnknownError`</a>.
-   1. If <var>port</var> was disconnected, reject <var>promise</var> with a
+   1. If <var>port</var> was disconnected,
+      <a data-cite="webidl#reject">reject</a> <var>promise</var> with a
       <a data-cite="webidl#networkerror">`NetworkError`</a>.
 1. Return <var>promise</var>.
 
@@ -458,29 +473,31 @@ single request to the operating system.
 
 ## <dfn>SerialPortSinkAbortAlgorithm</dfn>(<var>port</var>, <var>reason</var>)
 
-1. Let <var>promise</var> be a newly created
-   <a data-cite="webidl#promise">`Promise`</a>.
+1. Let <var>promise</var> be
+   <a data-cite="webidl#a-new-promise">a new promise</a>.
 1. <a data-cite="html#in-parallel">In parallel</a>, invoke the operating system
    to discard the contents of all software and hardware transmit buffers for
-   <var>port</var> and resolve <var>promise</var>.
+   <var>port</var> and <a data-cite="webidl#resolve">resolve</a>
+   <var>promise</var>.
 1. Return <var>promise</var>.
 
 <p class="note">
 [[STREAMS]] specifies that {{SerialPortSinkAbortAlgorithm}} will only be invoked
-after the <a data-cite="webidl#promise">`Promise`</a> returned by a previous
+after the <a data-cite="webidl#idl-promise">`Promise`</a> returned by a previous
 invokation of {{SerialPortSinkWriteAlgorithm}} (if any) has resolved. This
 blocks abort on completion of the most recent write operation. This could be
-fixed by passing an <a data-cite="dom#interface-AbortSignal">`AbortSignal`</a>
+fixed by passing an <a data-cite="dom#abortsignal">`AbortSignal`</a>
 to {{SerialPortSinkWriteAlgorithm}}.
 </p>
 
 ## <dfn>SerialPortSinkCloseAlgorithm</dfn>(<var>port</var>)
 
-1. Let <var>promise</var> be a newly created
-   <a data-cite="webidl#promise">`Promise`</a>.
+1. Let <var>promise</var> be
+   <a data-cite="webidl#a-new-promise">a new promise</a>.
 1. <a data-cite="html#in-parallel">In parallel</a>, invoke the operating system
    to flush the contents of all software and hardware transmit buffers for
-   <var>port</var> and resolve <var>promise</var>.
+   <var>port</var> and <a data-cite="webidl#resolve">resolve</a>
+   <var>promise</var>.
 </section>
 
 ## Security considerations
