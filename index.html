@@ -375,45 +375,51 @@ enum ParityType {
 
 1. Let <var>promise</var> be a newly created
    <a data-cite="webidl#promise">`Promise`</a>.
-1. <a data-cite="html#in-parallel">In parallel</a>, run the following steps:
-   1. Let <var>desiredSize</var> be <var>controller</var>.
-      <a data-cite="streams#rs-default-controller-desired-size">`desiredSize`</a>.
-   1. Let <var>buffer</var> be a newly created
-      <a data-cite="webidl#idl-ArrayBuffer">`ArrayBuffer`</a> of
-      <var>desiredSize</var> bytes.
-   1. Invoke the operating system to read up to <var>desiredSize</var> bytes
-      from <var>port</var> into <var>buffer</var>.
-   1. If no errors were encountered run the following steps:
-      1. Let <var>bytesRead</var> be the number of bytes written to
-         <var>buffer</var>.
-      1. Let <var>chunk</var> be a newly created
-         <a data-cite="webidl#idl-Uint8Array">`Uint8Array`</a> over the slice of
-         <var>buffer</var> from `0` to <var>bytesRead</var>.
-      1. Invoke <var>controller</var>.
-         <a data-cite="streams#rs-default-controller-enqueue">`enqueue()`</a>
-         with <var>chunk</var>.
-   1. If a buffer overrun condition was encountered, invoke
-      <var>controller</var>.
-      <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
-      <dfn>`BufferOverrunError`</dfn>.
-   1. If a break condition was encountered, invoke <var>controller</var>.
-      <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
-      <dfn>`BreakError`</dfn>.
-   1. If a framing error was encountered, invoke <var>controller</var>.
-      <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
-      <dfn>`FramingError`</dfn>.
-   1. If a parity error was encountered, invoke <var>controller</var>.
-      <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
-      <dfn>`ParityError`</dfn>.
-   1. If an operating system error was encountered, invoke
-      <var>controller</var>.
-      <a data-cite="streams#rs-default-controller-error">`error()`</a> with an
-      <a data-cite="webidl#unknownerror">`UnknownError`</a>.
-   1. If <var>port</var> was disconnected, invoke <var>controller</var>.
-      <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
-      <a data-cite="webidl#networkerror">`NetworkError`</a>.
-   1. Resolve <var>promise</var>.
-1. Return <var>promise</var>.
+1. Resolve <var>promise</var>.
+1. Return <var>promise</var> and run the following steps <a data-cite="html#in-parallel">in parallel</a>:
+    1. Let <var>desiredSize</var> be <var>controller</var>.
+       <a data-cite="streams#rs-default-controller-desired-size">`desiredSize`</a>.
+    1. Let <var>buffer</var> be a newly created
+       <a data-cite="webidl#idl-ArrayBuffer">`ArrayBuffer`</a> of
+       <var>desiredSize</var> bytes.
+    1. Invoke the operating system to read up to <var>desiredSize</var> bytes
+       from <var>port</var> into <var>buffer</var>.
+    1. If no errors were encountered run the following steps:
+       1. Let <var>bytesRead</var> be the number of bytes written to
+          <var>buffer</var>.
+       1. Let <var>chunk</var> be a newly created
+          <a data-cite="webidl#idl-Uint8Array">`Uint8Array`</a> over the slice of
+          <var>buffer</var> from `0` to <var>bytesRead</var>.
+       1. Invoke <var>controller</var>.
+          <a data-cite="streams#rs-default-controller-enqueue">`enqueue()`</a>
+          with <var>chunk</var>.
+    1. If a buffer overrun condition was encountered, invoke
+       <var>controller</var>.
+       <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+       <dfn>`BufferOverrunError`</dfn>.
+    1. If a break condition was encountered, invoke <var>controller</var>.
+       <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+       <dfn>`BreakError`</dfn>.
+    1. If a framing error was encountered, invoke <var>controller</var>.
+       <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+       <dfn>`FramingError`</dfn>.
+    1. If a parity error was encountered, invoke <var>controller</var>.
+       <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+       <dfn>`ParityError`</dfn>.
+    1. If an operating system error was encountered, invoke
+       <var>controller</var>.
+       <a data-cite="streams#rs-default-controller-error">`error()`</a> with an
+       <a data-cite="webidl#unknownerror">`UnknownError`</a>.
+    1. If <var>port</var> was disconnected, invoke <var>controller</var>.
+       <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+       <a data-cite="webidl#networkerror">`NetworkError`</a>.
+
+<p class="note">
+The <a data-cite="webidl#promise">`Promise`</a> returned by this algorithm is
+immediately resolved so that it does not block canceling the stream. [[STREAMS]]
+specifies that this algorithm will not be invoked again until a chunk is
+enqueued.
+</p>
 
 ## <dfn>SerialPortSourceCancelAlgorithm</dfn>(port)
 
@@ -423,14 +429,6 @@ enum ParityType {
    to discard the contents of all software and hardware receive buffers for
    <var>port</var> and resolve <var>promise</var>.
 1. Return <var>promise</var>.
-
-<p class="note">
-[[STREAMS]] specifies that {{SerialPortSourceCancelAlgorithm}} will only be
-invoked after the <a data-cite="webidl#promise">`Promise`</a> returned by a
-previous invocation of {{SerialPortSourcePullAlgorithm}} (if any) has resolved.
-This blocks cancelation of the stream until the operating system has completed
-a read operation.
-</p>
 </section>
 
 <section>
@@ -454,7 +452,8 @@ a read operation.
 after the <a data-cite="webidl#promise">`Promise`</a> returned by a previous
 invocation of this algorithm has resolved. This prevents implementations from
 coalescing multiple chunks waiting in the
-<a data-cite="streams#ws-class">`WritableStream`'s</a> internal queue.
+<a data-cite="streams#ws-class">`WritableStream`'s</a> internal queue into a
+single request to the operating system.
 </p>
 
 ## <dfn>SerialPortSinkAbortAlgorithm</dfn>(<var>port</var>, <var>reason</var>)
@@ -470,8 +469,9 @@ coalescing multiple chunks waiting in the
 [[STREAMS]] specifies that {{SerialPortSinkAbortAlgorithm}} will only be invoked
 after the <a data-cite="webidl#promise">`Promise`</a> returned by a previous
 invokation of {{SerialPortSinkWriteAlgorithm}} (if any) has resolved. This
-prevents users of this specification from also discarding the contents of the
-<a data-cite="streams#ws-class">`WritableStream`'s</a> internal queue.
+blocks abort on completion of the most recent write operation. This could be
+fixed by passing an <a data-cite="dom#interface-AbortSignal">`AbortSignal`</a>
+to {{SerialPortSinkWriteAlgorithm}}.
 </p>
 
 ## <dfn>SerialPortSinkCloseAlgorithm</dfn>(<var>port</var>)
