@@ -75,7 +75,7 @@ the <a>Serial</a> object.
 
 <section data-dfn-for="Serial" data-link-for="Serial">
 ## <dfn>Serial</dfn> interface
-<pre class="idl" data-cite="DOM HTML">
+<pre class="idl">
 dictionary SerialPortRequestOptions {
 };
 
@@ -103,23 +103,19 @@ choice (see <a>security considerations</a>).
 When the <a>requestPort()</a> method is invoked, the user agent MUST perform the
 following steps:
 
-1. Let <var>promise</var> be
-   <a data-cite="webidl#a-new-promise">a new promise</a>.
-1. Return <var>promise</var> and run the remaining steps asynchronously.
+1. Let |promise:Promise| be [=a new promise=].
+1. Return |promise| and run the remaining steps asynchronously.
 1. Request access to a serial port (see <a>security considerations</a>):
-   1. If the access request is rejected
-      <a data-cite="webidl#reject">reject</a> <var>promise</var>
-      with <a data-cite="webidl#aborterror">`AbortError`</a> and terminate this
-      algorithm.
-   1. Otherwise, let <var>port</var> be the <a>`SerialPort`</a> for which access
-      was granted and <a data-cite="webidl#resolve">resolve</a>
-      <var>promise</var> with <var>port</var>.
+   1. If the access request is rejected [=reject=] |promise| with {{AbortError}}
+      and terminate this algorithm.
+   1. Otherwise, let |port:SerialPort| be the {{SerialPort}} for which access
+      was granted and [=resolve=] |promise| with |port|.
 </section>
 
 <section data-dfn-for="SerialPort" data-link-for="SerialPort">
 <h2><dfn>SerialPort</dfn> interface</h2>
 
-<pre class="idl" data-cite="STREAMS">
+<pre class="idl">
 [Exposed=(DedicatedWorker,Window), SecureContext]
 interface SerialPort {
   readonly attribute ReadableStream readable;
@@ -156,17 +152,16 @@ When the <a>getInfo()</a> method is invoked, the user agent MUST perform the
 
 
 
-When invoked on a {{SerialPort}} <var>port</var> the <a>close()</a> method,
+When invoked on a {{SerialPort}} |port:SerialPort| the {{close()}} method,
 the user agent MUST perform the following steps,
 
-1. Let <var>cancelPromise</var> be the result of invoking
-   <var>port</var>.{{readable}}.<a data-cite="streams#rs-cancel">`cancel()`</a>.
-1. Let <var>abortPromise</var> be the result of invoking
-   <var>port</var>.{{writable}}.<a data-cite="streams#ws-abort">`abort()`</a>.
-1. Let <var>promise</var> be the result of
-   <a data-cite="webidl#waiting-for-all-promise">getting a promise to wait for
-   all</a> with «<var>cancelPromise</var>, <var>abortPromise</var>».
-1. Return <var>promise</var>.
+1. Let |cancelPromise:Promise| be the result of invoking
+   |port|.{{readable}}.<a data-cite="streams#rs-cancel">`cancel()`</a>.
+1. Let |abortPromise:Promise| be the result of invoking
+   |port|.{{writable}}.<a data-cite="streams#ws-abort">`abort()`</a>.
+1. Let |promise:Promise| be the result of
+   [=getting a promise to wait for all=] with «|cancelPromise|, |abortPromise|».
+1. Return |promise|.
 
 </section>
 
@@ -240,27 +235,27 @@ user agents SHOULD use the values provided in they "Key" column of the
 
 ### Getting serial port metadata
 
-The <dfn>steps for getting metadata of a serial port</dfn> for a <var>serial
-port</var> are as follows. The steps always return an instance of
+The <dfn>steps for getting metadata of a serial port</dfn> for a |serial
+port| are as follows. The steps always return an instance of
 `SerialPortInfo`, which contains the related metadata.
 
- 1. Let <var>info</var> be an object that implements the `SerialPortInfo`
+ 1. Let |info| be an object that implements the `SerialPortInfo`
     interface.
- 1. Let <var>path</var> be a `DOMString` that represents the path of the
-    <var>serial port</var>.
- 1. Invoke <var>info</var>'s `set()` method using the string `"path"` as the
-    key, and <var>path</var> as the value.
- 1. For each additional metadata item known about the <var>serial port</var>,
+ 1. Let |path| be a `DOMString` that represents the path of the
+    |serial port|.
+ 1. Invoke |info|'s `set()` method using the string `"path"` as the
+    key, and |path| as the value.
+ 1. For each additional metadata item known about the |serial port|,
     perform the following sub-steps. Please see the <a>table of recommended
     metadata</a> for a list of recommended metadata items that SHOULD be
     included.
-    1. Let <var>key</var> be a `DOMString` for the commonly used name for this
+    1. Let |key| be a `DOMString` for the commonly used name for this
        key.
-    1. Let <var>value</var> be a `DOMString` for the commonly used name for
+    1. Let |value| be a `DOMString` for the commonly used name for
        this key, or `null` otherwise.
-    1. Invoke <var>info</var>'s `set()` method using the string "path" as the
-       key, and <var>path</var> as the value.
- 1. Return <var>info</var>.
+    1. Invoke |info|'s `set()` method using the string "path" as the
+       key, and |path| as the value.
+ 1. Return |info|.
 </section>
 
 <section data-dfn-for="SerialOptions" data-link-for="SerialOptions">
@@ -382,122 +377,132 @@ enum ParityType {
 <section>
 ## Serial port source abstract operations
 
-## <dfn>SerialPortSourcePullAlgorithm</dfn>(<var>port</var>, <var>controller</var>)
+## <dfn>SerialPortSourcePullAlgorithm</dfn>(|port:SerialPort|, |controller:ReadableStreamDefaultController|)
 
-1. Let <var>promise</var> be
-   <a data-cite="webidl#a-new-promise">a new promise</a>.
-1. <a data-cite="webidl#resolve">Resolve</a> <var>promise</var>.
-1. Return <var>promise</var> and run the following steps <a data-cite="html#in-parallel">in parallel</a>:
-    1. Let <var>desiredSize</var> be <var>controller</var>.
-       <a data-cite="streams#rs-default-controller-desired-size">`desiredSize`</a>.
-    1. Let <var>buffer</var> be a newly created
-       <a data-cite="webidl#idl-ArrayBuffer">`ArrayBuffer`</a> of
-       <var>desiredSize</var> bytes.
-    1. Invoke the operating system to read up to <var>desiredSize</var> bytes
-       from <var>port</var> into <var>buffer</var>.
-    1. If no errors were encountered run the following steps:
-       1. Let <var>bytesRead</var> be the number of bytes written to
-          <var>buffer</var>.
-       1. Let <var>chunk</var> be a newly created
-          <a data-cite="webidl#idl-Uint8Array">`Uint8Array`</a> over the slice of
-          <var>buffer</var> from `0` to <var>bytesRead</var>.
-       1. Invoke <var>controller</var>.
-          <a data-cite="streams#rs-default-controller-enqueue">`enqueue()`</a>
-          with <var>chunk</var>.
-    1. If a buffer overrun condition was encountered, invoke
-       <var>controller</var>.
-       <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
-       <dfn>`BufferOverrunError`</dfn>.
-    1. If a break condition was encountered, invoke <var>controller</var>.
-       <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
-       <dfn>`BreakError`</dfn>.
-    1. If a framing error was encountered, invoke <var>controller</var>.
-       <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
-       <dfn>`FramingError`</dfn>.
-    1. If a parity error was encountered, invoke <var>controller</var>.
-       <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
-       <dfn>`ParityError`</dfn>.
-    1. If an operating system error was encountered, invoke
-       <var>controller</var>.
-       <a data-cite="streams#rs-default-controller-error">`error()`</a> with an
-       <a data-cite="webidl#unknownerror">`UnknownError`</a>.
-    1. If <var>port</var> was disconnected, invoke <var>controller</var>.
-       <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
-       <a data-cite="webidl#networkerror">`NetworkError`</a>.
+<ol>
+  <li>Let |promise:Promise| be [=a new promise=].</li>
+  <li>[=Resolve=] |promise|.</li>
+  <li>
+    Return |promise| and run the following steps [=in parallel=]:
+    <ol>
+      <li>
+        Let |desiredSize| be |controller|.
+        <a data-cite="streams#rs-default-controller-desired-size">`desiredSize`</a>.
+      </li>
+      <li>
+        Let |buffer| be a newly created {{ArrayBuffer}} of |desiredSize| bytes.
+      </li>
+      <li>
+        Invoke the operating system to read up to |desiredSize| bytes from
+        |port| into |buffer|.
+      </li>
+      <li>
+        If no errors were encountered run the following steps:
+        <ol>
+          <li>Let |bytesRead| be the number of bytes written to |buffer|.</li>
+          <li>
+            Let |chunk| be a newly created {{Uint8Array}} over the slice of
+            |buffer| from `0` to |bytesRead|.
+          <li>
+            Invoke |controller|.
+            <a data-cite="streams#rs-default-controller-enqueue">`enqueue()`</a>
+            with |chunk|.
+          </li>
+        </ol>
+      <li>
+        If a buffer overrun condition was encountered, invoke
+        |controller|.
+        <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+        <dfn>`BufferOverrunError`</dfn>.
+      </li>
+      <li>
+        If a break condition was encountered, invoke |controller|.
+        <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+        <dfn>`BreakError`</dfn>.
+      </li>
+      <li>
+        If a framing error was encountered, invoke |controller|.
+        <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+        <dfn>`FramingError`</dfn>.
+      </li>
+      <li>
+        If a parity error was encountered, invoke |controller|.
+        <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+        <dfn>`ParityError`</dfn>.
+      </li>
+      <li>
+        If an operating system error was encountered, invoke
+        |controller|.
+        <a data-cite="streams#rs-default-controller-error">`error()`</a> with an
+        {{UnknownError}}.
+      </li>
+      <li>
+        If |port| was disconnected, invoke |controller|.
+        <a data-cite="streams#rs-default-controller-error">`error()`</a> with a
+        {{NetworkError}}.
+      </li>
+    </ol>
+  </li>
+</ol>
 
 <p class="note">
-The <a data-cite="webidl#promise">`Promise`</a> returned by this algorithm is
-immediately resolved so that it does not block canceling the stream. [[STREAMS]]
-specifies that this algorithm will not be invoked again until a chunk is
-enqueued.
+The {{Promise}} returned by this algorithm is immediately resolved so that it
+does not block canceling the stream. [[STREAMS]] specifies that this algorithm
+will not be invoked again until a chunk is enqueued.
 </p>
 
-## <dfn>SerialPortSourceCancelAlgorithm</dfn>(port)
+## <dfn>SerialPortSourceCancelAlgorithm</dfn>(|port:SerialPort|)
 
-1. Let <var>promise</var> be a newly created
-   <a data-cite="webidl#promise">`Promise`</a>.
-1. <a data-cite="html#in-parallel">In parallel</a>, invoke the operating system
-   to discard the contents of all software and hardware receive buffers for
-   <var>port</var> and <a data-cite="webidl#resolve">resolve</a>
-   <var>promise</var>.
-1. Return <var>promise</var>.
+1. Let |promise| be [=a new promise=].
+1. [=In parallel=], invoke the operating system to discard the contents of all
+   software and hardware receive buffers for |port| and [=resolve=] |promise|.
+1. Return |promise|.
 </section>
 
 <section>
 ## Serial port sink abstract operations
 
-## <dfn>SerialPortSinkWriteAlgorithm</dfn>(<var>port</var>, <var>chunk</var>)
+## <dfn>SerialPortSinkWriteAlgorithm</dfn>(|port:SerialPort|, |chunk:Uint8Array|)
 
-1. Let <var>promise</var> be a newly created
-   <a data-cite="webidl#promise">`Promise`</a>.
-1. <a data-cite="html#in-parallel">In parallel</a>, run the following steps:
-   1. Invoke the operating system to write <var>chunk</var> to <var>port</var>.
-   1. If the chunk was successfully written
-      <a data-cite="webidl#resolve">resolve</a> <var>promise</var>.
-   1. If an operating system error was encountered,
-      <a data-cite="webidl#reject">reject</a> <var>promise</var>
-      with an <a data-cite="webidl#unknownerror">`UnknownError`</a>.
-   1. If <var>port</var> was disconnected,
-      <a data-cite="webidl#reject">reject</a> <var>promise</var> with a
-      <a data-cite="webidl#networkerror">`NetworkError`</a>.
-1. Return <var>promise</var>.
+1. Let |promise:Promise| be [=a new promise=].
+1. [=In parallel=], run the following steps:
+<ol>
+   1. Invoke the operating system to write |chunk| to |port|.
+   1. If the chunk was successfully written [=resolve=] |promise|.
+   1. If an operating system error was encountered, [=reject=] |promise| with an
+      {{UnknownError}}.
+   1. If |port| was disconnected, [=reject=] |promise| with a {{NetworkError}}.
+</ol>
+1. Return |promise|.
 
 <p class="note">
 [[STREAMS]] specifies that {{SerialPortSinkWriteAlgorithm}} will only be invoked
-after the <a data-cite="webidl#promise">`Promise`</a> returned by a previous
-invocation of this algorithm has resolved. This prevents implementations from
-coalescing multiple chunks waiting in the
-<a data-cite="streams#ws-class">`WritableStream`'s</a> internal queue into a
-single request to the operating system.
+after the {{Promise}} returned by a previous invocation of this algorithm has
+resolved. This prevents implementations from coalescing multiple chunks waiting
+in the {{WritableStream}}'s internal queue into a single request to the
+operating system.
 </p>
 
-## <dfn>SerialPortSinkAbortAlgorithm</dfn>(<var>port</var>, <var>reason</var>)
+## <dfn>SerialPortSinkAbortAlgorithm</dfn>(|port:SerialPort|)
 
-1. Let <var>promise</var> be
-   <a data-cite="webidl#a-new-promise">a new promise</a>.
-1. <a data-cite="html#in-parallel">In parallel</a>, invoke the operating system
-   to discard the contents of all software and hardware transmit buffers for
-   <var>port</var> and <a data-cite="webidl#resolve">resolve</a>
-   <var>promise</var>.
-1. Return <var>promise</var>.
+1. Let |promise| be [=a new promise=].
+1. [=In parallel=], invoke the operating system to discard the contents of all
+   software and hardware transmit buffers for |port| and [=resolve=] |promise|.
+1. Return |promise|.
 
 <p class="note">
 [[STREAMS]] specifies that {{SerialPortSinkAbortAlgorithm}} will only be invoked
-after the <a data-cite="webidl#idl-promise">`Promise`</a> returned by a previous
-invokation of {{SerialPortSinkWriteAlgorithm}} (if any) has resolved. This
-blocks abort on completion of the most recent write operation. This could be
-fixed by passing an <a data-cite="dom#abortsignal">`AbortSignal`</a>
-to {{SerialPortSinkWriteAlgorithm}}.
+after the {{Promise}} returned by a previous invocation of
+{{SerialPortSinkWriteAlgorithm}} (if any) has resolved. This blocks abort on
+completion of the most recent write operation. This could be fixed by passing an
+{{AbortSignal}} to {{SerialPortSinkWriteAlgorithm}}.
 </p>
 
-## <dfn>SerialPortSinkCloseAlgorithm</dfn>(<var>port</var>)
+## <dfn>SerialPortSinkCloseAlgorithm</dfn>(|port:SerialPort|)
 
-1. Let <var>promise</var> be
-   <a data-cite="webidl#a-new-promise">a new promise</a>.
-1. <a data-cite="html#in-parallel">In parallel</a>, invoke the operating system
-   to flush the contents of all software and hardware transmit buffers for
-   <var>port</var> and <a data-cite="webidl#resolve">resolve</a>
-   <var>promise</var>.
+1. Let |promise| be [=a new promise=].
+1. [=In parallel=], invoke the operating system to flush the contents of all
+   software and hardware transmit buffers for |port| and [=resolve=] |promise|.
 </section>
 
 ## Security considerations
