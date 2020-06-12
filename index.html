@@ -159,7 +159,7 @@ for use.
     SerialPortInfo getInfo();
 
     Promise&lt;void> open(SerialOptions options);
-    Promise&lt;void> setSignals(SerialOutputSignals signals);
+    Promise&lt;void> setSignals(optional SerialOutputSignals signals = {});
     Promise&lt;SerialInputSignals> getSignals();
     Promise&lt;void> close();
   };
