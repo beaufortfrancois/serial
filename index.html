@@ -80,9 +80,6 @@ for use.
   ## <dfn>Serial</dfn> interface
 
   ```webidl
-    dictionary SerialPortRequestOptions {
-    };
-
     [Exposed=(DedicatedWorker, Window), SecureContext]
     interface Serial : EventTarget {
       attribute EventHandler onconnect;
@@ -115,6 +112,39 @@ for use.
         was granted.
     1. [=Resolve=] |promise| with |port|.
 
+</section>
+
+<section data-dfn-for="SerialPortRequestOptions">
+  ## <dfn>SerialPortRequestOptions</dfn> dictionary
+
+  ```webidl
+    dictionary SerialPortRequestOptions {
+      sequence&lt;SerialPortFilter> filters;
+    };
+  ```
+
+  <dl>
+    <dt><dfn>filters</dfn> member</dt>
+    <dd>Filters for serial ports</dd>
+  </dl>
+</section>
+
+<section data-dfn-for="SerialPortFilter">
+  ## <dfn>SerialPortFilter</dfn> dictionary
+
+  ```webidl
+    dictionary SerialPortFilter {
+      unsigned short usbVendorId;
+      unsigned short usbProductId;
+    };
+  ```
+
+  <dl>
+    <dt><dfn>usbVendorId</dfn> member</dt>
+    <dd>USB Vendor ID</dd>
+    <dt><dfn>usbProductId</dfn> member</dt>
+    <dd>USB Product ID</dd>
+  </dl>
 </section>
 
 <section data-dfn-for="SerialPort">
@@ -274,7 +304,7 @@ for use.
     };
   ```
 
-  <dl data-dfn-for="SerialOptions">
+  <dl>
     <dt>
       <dfn>baudrate</dfn> member
     </dt>
