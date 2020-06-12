@@ -131,7 +131,7 @@ for use.
     Promise&lt;void> open(SerialOptions options);
     Promise&lt;void> setSignals(SerialOutputSignals signals);
     Promise&lt;SerialInputSignals> getSignals();
-    void close();
+    Promise&lt;void> close();
   };
   ```
 
@@ -155,13 +155,13 @@ for use.
 
   ### <dfn>close()</dfn> method
 
-  When invoked on a {{SerialPort}} |port:SerialPort| the {{close()}} method,
-  the user agent MUST perform the following steps,
+  When the {{SerialPort/close()}} method is invoked, the user agent MUST perform the
+  following steps:
 
   1. Let |cancelPromise:Promise| be the result of invoking
-    |port|.{{readable}}.<a data-cite="streams#rs-cancel">`cancel()`</a>.
+    {{SerialPort/readable}}.{{ReadableStream/cancel()}}</a>.
   1. Let |abortPromise:Promise| be the result of invoking
-    |port|.{{writable}}.<a data-cite="streams#ws-abort">`abort()`</a>.
+    {{SerialPort/writable}}.{{WritableStream/abort()}}</a>.
   1. Let |promise:Promise| be the result of
     [=getting a promise to wait for all=] with «|cancelPromise|, |abortPromise|».
   1. Return |promise|.
