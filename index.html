@@ -446,7 +446,7 @@ for use.
   perform the following steps for each script execution environment:
 
   1. Let |port:SerialPort| be the {{SerialPort}} object representing the new
-      serial port connected.
+      serial port connected (see [[[#security]]]).
   1. Let |event:SerialConnectionEvent| be a new {{SerialConnectionEvent}}, with
       its {{SerialConnectionEvent/port}} attribute set to |port|.
   1. Fire an event named <dfn>connect</dfn> on {{Navigator/serial}}, using
